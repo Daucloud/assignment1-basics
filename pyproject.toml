@@ -20,6 +20,8 @@ dependencies = [
     "wandb>=0.19.7",
     "click>=8.1.8",
     "scalene>=1.5.51",
+    "ujson>=5.10.0",
+    "rich>=14.0.0",
 ]
 
 
