@@ -168,7 +168,7 @@ def train_bpe(input_path, vocab_size, special_tokens, num_processes, save_path):
         return token.replace(' ', '\u0120')
 
     Path(save_path).mkdir(exist_ok=True)
-    vocab_str={token.decode(errors='replace'):id for id, token in vocab.items()}
+    vocab_str={encode_space(token.decode(errors='replace')):id for id, token in vocab.items()}
     with open(Path(save_path)/'vocab.json','w') as f:
         json.dump(vocab_str, f)
     with open(Path(save_path)/'merges.txt','w') as f:
