@@ -3,6 +3,7 @@ import pickle
 import click
 import regex as re
 import multiprocessing
+import ujson as json
 from pathlib import Path
 from typing import BinaryIO
 from collections import Counter
@@ -65,7 +66,6 @@ def count_single_chunk(args):
         chunks=re.split("|".join(re.escape(token) for token in special_tokens),raw_data)
         ret=Counter()
         for c in chunks:
-            aa=False
             ret.update([tuple(bytes([a]) for a in match.group().encode()) for match in re.finditer(PAT, c)])
     return ret
 
@@ -163,11 +163,17 @@ def train_bpe(input_path, vocab_size, special_tokens, num_processes, save_path):
         special_tokens=special_tokens,
         num_processes=num_processes
     )
+
+    def encode_space(token):
+        return token.replace(' ', '\u0120')
+
     Path(save_path).mkdir(exist_ok=True)
-    with open(Path(save_path)/'vocab.pkl','wb') as f:
-        pickle.dump(vocab, f)
-    with open(Path(save_path)/'merges.pkl','wb') as f:
-        pickle.dump(merges, f)
+    vocab_str={token.decode(errors='replace'):id for id, token in vocab.items()}
+    with open(Path(save_path)/'vocab.json','w') as f:
+        json.dump(vocab_str, f)
+    with open(Path(save_path)/'merges.txt','w') as f:
+        for token1, token2 in merges:
+            f.write(f"{encode_space(token1.decode(errors='replace'))} {encode_space(token2.decode(errors='replace'))}\n")
 
 if __name__=='__main__':
     train_bpe()
