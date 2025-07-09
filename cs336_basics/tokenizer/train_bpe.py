@@ -1,5 +1,4 @@
 import os
-import pickle
 import click
 import regex as re
 import multiprocessing
@@ -7,6 +6,7 @@ import ujson as json
 from pathlib import Path
 from typing import BinaryIO
 from collections import Counter
+from .utils import PRETOKENIZE_PAT, get_new_string
 
 def find_chunk_boundaries(
     file: BinaryIO, 
@@ -57,7 +57,6 @@ def find_chunk_boundaries(
     return sorted(set(chunk_boundaries))
 
 def count_single_chunk(args):
-    PAT = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
     input_path, special_tokens, start, end=args
     with open(input_path, 'rb') as f:
         f.seek(start)
@@ -66,9 +65,8 @@ def count_single_chunk(args):
         chunks=re.split("|".join(re.escape(token) for token in special_tokens),raw_data)
         ret=Counter()
         for c in chunks:
-            ret.update([tuple(bytes([a]) for a in match.group().encode()) for match in re.finditer(PAT, c)])
+            ret.update(tuple(bytes([a]) for a in match.group().encode()) for match in re.finditer(PRETOKENIZE_PAT, c))
     return ret
-
 
 def pre_tokenize(input_path,num_processes,special_tokens):
     with open(input_path,'rb') as f:
@@ -120,17 +118,8 @@ def run_train_bpe(
             old_pair_counter=Counter()
             for pair in zip(old_string[:-1],old_string[1:]):
                 old_pair_counter.update({pair:string_count})
-            new_string=[]
-            i=0
-            while i<len(old_string):
-                if i<len(old_string)-1 and old_string[i]+old_string[i+1]==merged_pair:
-                    new_string.append(merged_pair)
-                    i+=2
-                else:
-                    new_string.append(old_string[i])
-                    i+=1
             new_pair_counter=Counter()
-            new_string=tuple(new_string)
+            new_string=tuple(get_new_string(old_string, merged_pair))
             for pair in zip(new_string[:-1],new_string[1:]):
                 new_pair_counter.update({pair:string_count})
             for pair, count in old_pair_counter.items():
