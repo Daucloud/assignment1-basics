@@ -6,7 +6,7 @@ import ujson as json
 from pathlib import Path
 from typing import BinaryIO
 from collections import Counter
-from .utils import PRETOKENIZE_PAT, get_new_string
+from ..utils import PRETOKENIZE_PAT, get_new_string
 
 def find_chunk_boundaries(
     file: BinaryIO, 

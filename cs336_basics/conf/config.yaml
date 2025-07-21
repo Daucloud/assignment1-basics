@@ -1,0 +1,33 @@
+defaults:
+  - model: test
+  - optimizer: adamw
+  - data: test
+
+wandb:
+  project: cs336_basics
+  name: ${model.name}-${optimizer.name}-${now:%Y%m%d_%H%M%S}
+  mode: disabled
+
+device: mps
+seed: 42
+
+train:
+  steps: 1000
+  eval_steps: 100
+  batch_size: 16
+  clip_value: 1.0
+  warmup_ratio: 0.05
+  load_path: null
+  save_path: checkpoints/${model.name}-${now:%Y%m%d_%H%M%S}.pt
+
+inference:
+  load_path: /Users/daucloud/Code/learning/cs336n/assignment1-basics/checkpoints/test-20250720_191255.pt
+  max_token: 100
+  temperature: 0.7
+  p: 0.7
+
+optimizer: 
+  lr: 2e-5
+tokenizer:
+  path: /Users/daucloud/Code/learning/cs336n/assignment1-basics/bpe_results
+  save_path: /Users/daucloud/Code/learning/cs336n/assignment1-basics/data/tinystories
